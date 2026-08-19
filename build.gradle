@@ -59,7 +59,7 @@ neoForge {
         }
 
         data {
-            data()
+            clientData()
             programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
 
@@ -82,8 +82,8 @@ configurations {
 }
 
 dependencies {
-    compileOnly "maven.modrinth:RYtXKJPr:rMGJpjaM"
-    compileOnly "maven.modrinth:WrpuIfhw:Zwf8nv8y"
+    implementation "maven.modrinth:RYtXKJPr:ySDPDb0E" // Gravestone
+    implementation "maven.modrinth:WrpuIfhw:vAB33p3P" // Corpse
     compileOnly "maven.modrinth:uetGbPKW:DwA6a1pT"
     compileOnly "maven.modrinth:I3mWDgfy:CyKh8XSr"
     compileOnly "maven.modrinth:T9PomCSv:U678xqle"
