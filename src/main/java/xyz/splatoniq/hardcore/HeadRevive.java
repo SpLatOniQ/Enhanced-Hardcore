@@ -1,12 +1,16 @@
 package xyz.splatoniq.hardcore;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.Level;
@@ -49,15 +53,9 @@ public class HeadRevive {
 
         if (playerName.isEmpty()) return;
 
-        ItemStack heldItem = event.getItemStack();
-        String configItem = Config.REVIVAL_ITEM.get();
+        ItemStack heldItem = ReviveHelper.isHoldingReviver((ServerPlayer) event.getEntity());
 
-        if (configItem == null || configItem.trim().isEmpty()) return;
-
-        ResourceLocation itemLocation = ResourceLocation.tryParse(configItem.toLowerCase());
-
-        if (itemLocation == null) return;
-        if (heldItem.getItem() != BuiltInRegistries.ITEM.get(itemLocation)) return;
+        if (heldItem == null) return;
 
         ServerPlayer player = HardcoreEnhanced.server.getPlayerList().getPlayerByName(playerName);
 

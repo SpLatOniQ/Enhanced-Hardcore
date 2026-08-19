@@ -15,6 +15,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import xyz.splatoniq.hardcore.Config;
 import xyz.splatoniq.hardcore.HardcoreEnhanced;
+import xyz.splatoniq.hardcore.ReviveHelper;
 
 import java.util.UUID;
 
@@ -29,19 +30,9 @@ public class CorpsesCompat {
         Entity eventEntity = event.getTarget();
         if (!(eventEntity instanceof CorpseEntity corpse)) return;
 
-        ItemStack heldItem = event.getItemStack();
+        ItemStack heldItem = ReviveHelper.isHoldingReviver((ServerPlayer) event.getEntity());
 
-        String configItem = Config.REVIVAL_ITEM.get();
-
-        if (configItem == null || configItem.trim().isEmpty()) return;
-
-        ResourceLocation itemLocation = ResourceLocation.tryParse(configItem.toLowerCase());
-
-        if (itemLocation == null) return;
-
-        Item revivalItem = BuiltInRegistries.ITEM.get(itemLocation);
-
-        if (heldItem.getItem() != revivalItem) return;
+        if (heldItem == null) return;
 
         MinecraftServer server = level.getServer();
 

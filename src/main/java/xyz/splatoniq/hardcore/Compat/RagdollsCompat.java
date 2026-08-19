@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import xyz.splatoniq.hardcore.Config;
 import xyz.splatoniq.hardcore.HardcoreEnhanced;
+import xyz.splatoniq.hardcore.ReviveHelper;
 
 import java.util.UUID;
 
@@ -23,17 +24,9 @@ public class RagdollsCompat {
         if (level.isClientSide() || event.player().getUsedItemHand() != InteractionHand.MAIN_HAND) return;
 
         UUID headId = event.rootId();
-        String configItem = Config.REVIVAL_ITEM.get();
+        ItemStack heldItem = ReviveHelper.isHoldingReviver(event.player());
 
-        if (configItem == null || configItem.trim().isEmpty()) return;
-
-        ResourceLocation itemLocation = ResourceLocation.tryParse(configItem.toLowerCase());
-
-        if (itemLocation == null) return;
-
-        ItemStack heldItem = event.player().getMainHandItem();
-
-        if (heldItem.getItem() != BuiltInRegistries.ITEM.get(itemLocation)) return;
+        if (heldItem == null) return;
 
         MinecraftServer server = level.getServer();
 

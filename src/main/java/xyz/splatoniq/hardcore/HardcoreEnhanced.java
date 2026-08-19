@@ -1,7 +1,6 @@
 package xyz.splatoniq.hardcore;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -9,7 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.portal.DimensionTransition;
+import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -24,6 +23,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import xyz.splatoniq.hardcore.Compat.CorpsesCompat;
 import xyz.splatoniq.hardcore.Compat.GravestonesCompat;
 import xyz.splatoniq.hardcore.Compat.RagdollsCompat;
+import xyz.splatoniq.hardcore.SavedData.DeadPlayersData;
 
 import java.util.UUID;
 
@@ -81,18 +81,18 @@ public class HardcoreEnhanced {
                 targetPos = data.getDeathPosition(playerID);
             }
             else {
-                if (player.getRespawnPosition() != null) {
-                    targetPos = new DeathPosition(player.getRespawnDimension(), player.getRespawnPosition());
+                if (player.getRespawnPosition() != null && player.getRespawnDimension() != null) {
+                    targetPos = new DeathPosition(player.getRespawnDimension(), player.getRaidOmenPosition());
                 }
             }
 
-            player.changeDimension(new DimensionTransition(
+            player.teleport(new TeleportTransition(
                     server.getLevel(targetPos.dimension()),
                     Vec3.atCenterOf(targetPos.pos()),
                     Vec3.ZERO,
-                    0.0F,
-                    0.0F,
-                    DimensionTransition.DO_NOTHING
+                    0.0f,
+                    0.0f,
+                    TeleportTransition.DO_NOTHING
             ));
 
             player.setGameMode(GameType.SURVIVAL);

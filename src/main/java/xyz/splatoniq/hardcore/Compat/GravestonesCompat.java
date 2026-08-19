@@ -15,6 +15,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import xyz.splatoniq.hardcore.Config;
 import xyz.splatoniq.hardcore.HardcoreEnhanced;
+import xyz.splatoniq.hardcore.ReviveHelper;
 
 public class GravestonesCompat {
     @SubscribeEvent
@@ -37,15 +38,9 @@ public class GravestonesCompat {
 
         if (playerName == null || playerName.isEmpty()) return;
 
-        ItemStack heldItem = event.getItemStack();
-        String configItem = Config.REVIVAL_ITEM.get();
+        ItemStack heldItem = ReviveHelper.isHoldingReviver((ServerPlayer) event.getEntity());
 
-        if (configItem == null || configItem.trim().isEmpty()) return;
-
-        ResourceLocation itemLocation = ResourceLocation.tryParse(configItem.toLowerCase());
-
-        if (itemLocation == null) return;
-        if (heldItem.getItem() != BuiltInRegistries.ITEM.get(itemLocation)) return;
+        if (heldItem == null) return;
 
         ServerPlayer player = HardcoreEnhanced.server.getPlayerList().getPlayerByName(playerName);
 
