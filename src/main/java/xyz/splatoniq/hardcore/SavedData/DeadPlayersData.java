@@ -1,16 +1,14 @@
 package xyz.splatoniq.hardcore.SavedData;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import org.jetbrains.annotations.Nullable;
 import xyz.splatoniq.hardcore.DeathPosition;
 
@@ -21,14 +19,47 @@ import java.util.Set;
 import java.util.UUID;
 
 public class DeadPlayersData extends SavedData {
-    private final Map<UUID, DeathPosition> deadPlayers = new HashMap<>();
-    private final Set<UUID> pendingPlayers = new HashSet<>();
+    private record DeadPlayerEntry(UUID uuid, DeathPosition position) {
+        public static final Codec<DeadPlayerEntry> CODEC = RecordCodecBuilder.create(instance ->
+                instance.group(
+                        UUIDUtil.CODEC.fieldOf("UUID").forGetter(DeadPlayerEntry::uuid),
+                        BlockPos.CODEC.fieldOf("Pos").forGetter(e -> e.position().pos()),
+                        ResourceKey.codec(Registries.DIMENSION).fieldOf("Dimension").forGetter(e -> e.position().dimension())
+                ).apply(instance, (uuid, pos, dim) -> new DeadPlayerEntry(uuid, new DeathPosition(dim, pos)))
+        );
+    }
 
-    public static final SavedData.Factory<DeadPlayersData> TYPE = new SavedData.Factory<>(
+    public static final Codec<DeadPlayersData> CODEC = RecordCodecBuilder.create(instance ->
+            instance.group(
+                    DeadPlayerEntry.CODEC.listOf().fieldOf("DeadPlayers").forGetter(data ->
+                            data.deadPlayers.entrySet().stream()
+                                    .map(e -> new DeadPlayerEntry(e.getKey(), e.getValue()))
+                                    .toList()
+                    ),
+                    UUIDUtil.CODEC.listOf().fieldOf("PendingPlayers").forGetter(data ->
+                            data.pendingPlayers.stream().toList()
+                    )
+            ).apply(instance, (deadList, pendingList) -> {
+                DeadPlayersData data = new DeadPlayersData();
+
+                for (DeadPlayerEntry entry : deadList) {
+                    data.deadPlayers.put(entry.uuid(), entry.position());
+                }
+
+                data.pendingPlayers.addAll(pendingList);
+                return data;
+            })
+    );
+
+    public static final SavedDataType<DeadPlayersData> TYPE = new SavedDataType<>(
+            "hardcore_dead_players",
             DeadPlayersData::new,
-            DeadPlayersData::load,
+            CODEC,
             null
     );
+
+    private final Map<UUID, DeathPosition> deadPlayers = new HashMap<>();
+    private final Set<UUID> pendingPlayers = new HashSet<>();
 
     public DeadPlayersData() {
         super();
@@ -72,65 +103,5 @@ public class DeadPlayersData extends SavedData {
 
     public Set<UUID> getPendingPlayers() {
         return this.pendingPlayers;
-    }
-
-    public static DeadPlayersData load(CompoundTag tag, HolderLookup.Provider registries) {
-        DeadPlayersData data = new DeadPlayersData();
-
-        if (tag.contains("DeadPlayers", Tag.TAG_LIST)) {
-            ListTag listTag = tag.getList("DeadPlayers", Tag.TAG_COMPOUND);
-
-            for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag entryTag = listTag.getCompound(i);
-                UUID uuid = entryTag.getUUID("UUID");
-                int x = entryTag.getInt("X");
-                int y = entryTag.getInt("Y");
-                int z = entryTag.getInt("Z");
-                BlockPos pos = new BlockPos(x, y, z);
-                ResourceLocation dimLoc = ResourceLocation.parse(entryTag.getString("Dimension"));
-                ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, dimLoc);
-                data.deadPlayers.put(uuid, new DeathPosition(dimension, pos));
-            }
-        }
-
-        if (tag.contains("PendingPlayers", Tag.TAG_LIST)) {
-            ListTag listTag = tag.getList("PendingPlayers", Tag.TAG_COMPOUND);
-
-            for (int i = 0; i < listTag.size(); i++) {
-                CompoundTag entryTag = listTag.getCompound(i);
-                UUID uuid = entryTag.getUUID("UUID");
-                data.pendingPlayers.add(uuid);
-            }
-        }
-
-        return data;
-    }
-
-    @Override
-    public @NotNull CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
-        ListTag deadListTag = new ListTag();
-
-        for (Map.Entry<UUID, DeathPosition> entry : this.deadPlayers.entrySet()) {
-            CompoundTag entryTag = new CompoundTag();
-            entryTag.putUUID("UUID", entry.getKey());
-            DeathPosition position = entry.getValue();
-            entryTag.putInt("X", position.pos().getX());
-            entryTag.putInt("Y", position.pos().getY());
-            entryTag.putInt("Z", position.pos().getZ());
-            entryTag.putString("Dimension", position.dimension().location().toString());
-            deadListTag.add(entryTag);
-        }
-
-        tag.put("DeadPlayers", deadListTag);
-        ListTag pendingListTag = new ListTag();
-
-        for (UUID uuid : this.pendingPlayers) {
-            CompoundTag entryTag = new CompoundTag();
-            entryTag.putUUID("UUID", uuid);
-            pendingListTag.add(entryTag);
-        }
-
-        tag.put("PendingPlayers", pendingListTag);
-        return tag;
     }
 }

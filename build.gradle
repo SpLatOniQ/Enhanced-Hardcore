@@ -82,8 +82,8 @@ configurations {
 }
 
 dependencies {
-    implementation "maven.modrinth:RYtXKJPr:ySDPDb0E" // Gravestone
-    implementation "maven.modrinth:WrpuIfhw:vAB33p3P" // Corpse
+    compileOnly "maven.modrinth:RYtXKJPr:EMaJgl2u" // Gravestone
+    compileOnly "maven.modrinth:WrpuIfhw:JD7SMq8G" // Corpse
     compileOnly "maven.modrinth:uetGbPKW:DwA6a1pT"
     compileOnly "maven.modrinth:I3mWDgfy:CyKh8XSr"
     compileOnly "maven.modrinth:T9PomCSv:U678xqle"

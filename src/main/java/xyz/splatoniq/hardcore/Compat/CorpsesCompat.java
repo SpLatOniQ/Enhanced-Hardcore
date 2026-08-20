@@ -28,6 +28,7 @@ public class CorpsesCompat {
         if (level.isClientSide() || event.getHand() != InteractionHand.MAIN_HAND) return;
 
         Entity eventEntity = event.getTarget();
+
         if (!(eventEntity instanceof CorpseEntity corpse)) return;
 
         ItemStack heldItem = ReviveHelper.isHoldingReviver((ServerPlayer) event.getEntity());
@@ -38,7 +39,7 @@ public class CorpsesCompat {
 
         if (server == null) return;
 
-        UUID playerID = corpse.getCorpseUUID().orElse(null);
+        UUID playerID = corpse.getPlayerUuid();
 
         if (playerID == null) return;
 

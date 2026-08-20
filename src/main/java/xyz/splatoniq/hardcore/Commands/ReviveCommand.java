@@ -21,7 +21,7 @@ public class ReviveCommand {
                 .then(Commands.argument("player", EntityArgument.players())
                         .executes(context -> {
                             Collection<ServerPlayer> players = EntityArgument.getPlayers(context, "player");
-                            DeadPlayersData data = HardcoreEnhanced.server.overworld().getDataStorage().computeIfAbsent(DeadPlayersData.TYPE, "hardcore_dead_players");
+                            DeadPlayersData data = HardcoreEnhanced.server.overworld().getDataStorage().computeIfAbsent(DeadPlayersData.TYPE);
 
                             int revivedCount = 0;
 

@@ -1,6 +1,7 @@
 package xyz.splatoniq.hardcore;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -38,6 +39,7 @@ public class HardcoreEnhanced {
     private static CompatMod compatMod = CompatMod.BUILTIN;
 
     public HardcoreEnhanced(ModContainer container) {
+        boolean usesMods = false;
         NeoForge.EVENT_BUS.register(HardcoreEnhanced.class);
         container.registerConfig(ModConfig.Type.SERVER, Config.SPEC);
 
@@ -81,9 +83,13 @@ public class HardcoreEnhanced {
                 targetPos = data.getDeathPosition(playerID);
             }
             else {
-                if (player.getRespawnPosition() != null && player.getRespawnDimension() != null) {
-                    targetPos = new DeathPosition(player.getRespawnDimension(), player.getRaidOmenPosition());
+                ServerPlayer.RespawnConfig respawnConfig = player.getRespawnConfig();
+                if (respawnConfig != null) {
+                    if (respawnConfig.pos() != null && respawnConfig.dimension() != null) {
+                        targetPos = new DeathPosition(respawnConfig.dimension(), respawnConfig.pos());
+                    }
                 }
+
             }
 
             player.teleport(new TeleportTransition(
@@ -150,7 +156,7 @@ public class HardcoreEnhanced {
     }
 
     public static DeadPlayersData getDeadPlayers() {
-        return server.overworld().getDataStorage().computeIfAbsent(DeadPlayersData.TYPE, "hardcore_dead_players");
+        return server.overworld().getDataStorage().computeIfAbsent(DeadPlayersData.TYPE);
     }
 
 //    public static void sendChatMessage(String message) {
